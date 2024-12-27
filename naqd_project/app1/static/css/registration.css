@@ -8,6 +8,8 @@ body{
     height: 100vh;
     position: relative;
     
+    
+    
 }
 .sign{
     width: 65%;
@@ -17,14 +19,18 @@ body{
     margin: auto;
     margin-top: 15px;
 
+   
+
 }
 .profile-pic{
     width: 90px;
     height: 90px;
 }
-.logo{
+.add_customer{
     width: 30%;
     position: absolute;
     top: 11%;
     left: 55%;
 }
+
+
