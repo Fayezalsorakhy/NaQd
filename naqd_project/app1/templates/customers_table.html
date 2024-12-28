@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers Table</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'CSS/customers_table.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+</head>
+
+<body>
+
+    <h2>Customer Information</h2>
+
+    <table id="customerTable">
+        <thead>
+            <tr>
+                <th>Profile Picture</th>
+                <th>Security Number</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Identity</th>
+                <th>Address</th>
+                <th>Mobile</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="customerTableBody">
+            <!-- Data rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+    <script>
+        // Sample API endpoint for fetching customers (replace this with your actual API URL)
+const apiUrl = 'https://jsonplaceholder.typicode.com/users'; // Mock API
+
+// Function to fetch customer data and display it
+async function fetchCustomers() {
+    try {
+        const response = await fetch(apiUrl);
+        const customers = await response.json();
+        const tableBody = document.getElementById('customerTableBody');
+        tableBody.innerHTML = ''; // Clear existing rows
+
+        customers.slice(0, 6).forEach((customer) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <a href="http://127.0.0.1:8000/{{ item.icon.file.url }}" target="_blank">
+                        <img src="https://via.placeholder.com/50" alt="Profile Picture" class="rounded-circle" />
+                    </a>
+                </td>
+                <td>${customer.id}</td>
+                <td>${customer.name}</td>
+                <td>${customer.email}</td>
+                <td>${customer.username}</td>
+                <td>${customer.address.street}, ${customer.address.city}</td>
+                <td>${customer.phone}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editCustomer(${customer.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.id})">Delete</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error fetching customer data:', error);
+    }
+}
+
+// Function to edit a customer (mock behavior for now)
+function editCustomer(id) {
+    alert(`Editing customer with ID: ${id}`);
+    // You would open an edit form with the customer's data here
+}
+
+// Function to delete a customer (mock behavior for now)
+function deleteCustomer(id) {
+    const confirmation = confirm(`Are you sure you want to delete the customer with ID: ${id}?`);
+    if (confirmation) {
+        alert(`Customer with ID: ${id} deleted.`);
+        // Here you would typically make a DELETE request to the API to remove the customer from the database
+    }
+}
+
+// Fetch customers when the page loads
+window.onload = fetchCustomers;
+
+    </script> 
+</body>
+
+</html>

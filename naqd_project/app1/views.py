@@ -9,3 +9,6 @@ def login(request):
 def register(request):
     return render(request,"registration.html")
 
+def customers_table(request):
+  return render (request,"customers_table.html")
+
