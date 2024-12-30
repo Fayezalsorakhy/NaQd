@@ -6,6 +6,15 @@ urlpatterns = [
     path('main', views.main,name="main"),
     path('api/customers/', views.customers_list, name='customers-list'),
     path('api/debts/', views.debts_list, name='debts-list'),
+    
+    
+    
+    
+    path('select_customer/', views.select_customer, name='select_customer'),
+    path('customers_view', views.customers_view, name='customers_view'),
+
+    
+    
 
  
     
