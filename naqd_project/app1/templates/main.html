@@ -70,7 +70,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="nav-link text-white" id="debts-link">
+                        <a href="#" class="nav-link text-white" id="payments-link">
                             <svg class="bi me-2" width="16" height="16">
                                 <use xlink:href="#speedometer2"></use>
                             </svg>
@@ -78,7 +78,7 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="nav-link text-white" id="debts-link">
+                        <a href="#" class="nav-link text-white" id="cheques-link">
                             <svg class="bi me-2" width="16" height="16">
                                 <use xlink:href="#speedometer2"></use>
                             </svg>
@@ -127,19 +127,19 @@
                 <div class="modal-body">
                     <form id="selectCustomerForm" method="post" action="{% url 'select_customer' %}">
                         {% csrf_token %}
-                        <input type="hidden" id="item_id_modal" name="item_id" value="">
+                        <input type="hidden" id="item_id_modal" name="debt.id" value="">
                         <div class="mb-3">
                             <label for="customerSelect" class="form-label"><strong>Choose a Customer</strong></label>
                             <select class="form-select" id="customerSelect" name="customer_id">
                                 <option value="" disabled selected>Select a customer</option>
                             </select><br>
                             <div class="mb-3">
-                                <label for="item_sn" class="form-label"><strong>Amount:</strong> </label>
-                                <input type="text" class="form-control" id="item_sn" name="Item_SN">
+                                <label for="debt_amount" class="form-label"><strong>Amount:</strong> </label>
+                                <input type="text" class="form-control" id="debt_amount" name="debt_amount">
                             </div>
                             <div class="mb-3">
-                                <label for="item_description" class="form-label"><strong>Notes:</strong> </label>
-                                <textarea class="form-control" id="item_description" rows="3" name="description"></textarea>
+                                <label for="debt_description" class="form-label"><strong>Notes:</strong> </label>
+                                <textarea class="form-control" id="debt_description" rows="3" name="debt_description"></textarea>
                             </div>
                         </div>
                     </form>
@@ -147,7 +147,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" form="selectCustomerForm" class="btn btn-primary"
-                        id="select_customer">Save</button>
+                        id="add_debts">Save</button>
                 </div>
             </div>
         </div>
@@ -246,6 +246,41 @@
             });
         });
 
+
+        document.querySelector('#add_debts').addEventListener('click', function () {
+        
+        var selectedCustomer = document.getElementById('customerSelect').value;
+        var debt_amount = document.getElementById('debt_amount').value;
+        var debt_Description = document.getElementById('debt_description').value;
+        
+
+        fetch('/add_debts/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                
+                customer_id : selectedCustomer,
+                debtamount: debt_amount,
+                debtDescription: debt_Description
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Debt was updated successfully!');
+                    location.reload(); // إعادة تحميل الصفحة بعد التحديث
+                } else {
+                    alert('Failed to update item! ');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating item:', error);
+                alert('Failed to update item!');
+            });
+    });
 
     </script>
 

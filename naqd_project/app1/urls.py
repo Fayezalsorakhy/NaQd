@@ -12,6 +12,16 @@ urlpatterns = [
     
     path('select_customer/', views.select_customer, name='select_customer'),
     path('customers_view', views.customers_view, name='customers_view'),
+    
+    path('add_debts/', views.add_debts, name='add_debts'),
+    
+    
+    
+    
+    
+    
+    
+    
 
     
     

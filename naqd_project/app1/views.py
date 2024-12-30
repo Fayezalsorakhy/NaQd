@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse
 from .models import *
 from django.http import JsonResponse
+import json
 
 
 
@@ -72,6 +73,41 @@ def select_customer(request):
     # }, status=400)
     # else:
     #         return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+
+
+
+
+def add_debts(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            print('Received data:', data)  # للتشخيص
+            
+            customer_id = data.get('customer_id')
+            debt_amount = data.get('debtamount')
+            debt_description = data.get('debtDescription')
+
+            if not customer_id or not debt_amount or not debt_description:
+                return JsonResponse({'success': False, 'error': 'البيانات غير مكتملة'})
+
+            if not Customer.objects.filter(id=customer_id).exists():
+                return JsonResponse({'success': False, 'error': 'العميل غير موجود'})
+
+            customer = Customer.objects.get(id=customer_id)
+
+            Debt.objects.create(
+                customer=customer,
+                amount_debt=debt_amount,
+                notes=debt_description
+            )
+
+            return JsonResponse({'success': True})
+        except Exception as e:
+            print('Error:', str(e))  # للتشخيص
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False, 'error': 'طلب غير صالح'})
 
 
 
