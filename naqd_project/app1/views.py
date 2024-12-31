@@ -130,3 +130,16 @@ def delete_debt(request, pk):
 def debt_list(request):
     debts = Debt.objects.all()  # جلب جميع الديون من قاعدة البيانات
     return render(request, 'debt_list.html', {'debts': debts})
+
+def edit_debt(request, debt_id):
+    if request.method == 'POST':
+        try:
+            debt = Debt.objects.get(id=debt_id)
+            data = json.loads(request.body)
+            debt.amount_debt = data.get('amount_debt')
+            debt.notes = data.get('notes')
+            debt.save()
+            return JsonResponse({'success': True})
+        except Debt.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Debt not found'})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})

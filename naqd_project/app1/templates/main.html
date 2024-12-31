@@ -179,23 +179,23 @@
         });
 
         document.getElementById('debts-link').addEventListener('click', function () {
-    fetch('/api/debts/')
-        .then(response => response.json())
-        .then(data => {
-            let content = '<table class="table table-striped">';
-            content += '<thead><tr><th>ID</th><th>Amount</th><th>Status</th><th>Customer</th><th>Actions</th></tr></thead><tbody>';
+            fetch('/api/debts/')
+                .then(response => response.json())
+                .then(data => {
+                    let content = '<table class="table table-striped">';
+                    content += '<thead><tr><th>ID</th><th>Amount</th><th>Status</th><th>Customer</th><th>Actions</th></tr></thead><tbody>';
 
-            const add_button = '<button type="button" class="btn btn-primary btn-lg active" data-bs-toggle="modal" data-bs-target="#customerModal"> Add Debts </button>';
+                    const add_button = '<button type="button" class="btn btn-primary btn-lg active" data-bs-toggle="modal" data-bs-target="#customerModal"> Add Debts </button>';
 
-            data.forEach(debt => {
-                content += `<tr id="debt-row-${debt.id}">
+                    data.forEach(debt => {
+                        content += `<tr id="debt-row-${debt.id}">
                     <td>${debt.id}</td>
                     <td>${debt.amount_debt}</td>
                     <td>${debt.status_debt ? 'Paid' : 'Unpaid'}</td>
                     <td>${debt.customer_name}</td>
                     <td>
                         <div class="actions">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                            <button type="button" class="btn btn-primary" onclick="openEditModal(${debt.id}, '${debt.amount_debt}', '${debt.notes}')" data-bs-toggle="modal"
                                 data-bs-target="#exampleModal" data-id="${debt.id}">
                                 Edit
                             </button>
@@ -206,37 +206,86 @@
                         </div>
                     </td>
                 </tr>`;
-            });
+                    });
 
-            content += '</tbody></table>';
-            document.getElementById('content').innerHTML = add_button + content;
-            document.getElementById('head_title').textContent = 'Debts';
+                    content += '</tbody></table>';
+                    document.getElementById('content').innerHTML = add_button + content;
+                    document.getElementById('head_title').textContent = 'Debts';
+                });
         });
+// فتح المودال وتعبئة الحقول
+function openEditModal(debtId, amount, notes) {
+    document.getElementById('editDebtId').value = debtId;
+    document.getElementById('editDebtAmount').value = amount;
+    document.getElementById('editDebtNotes').value = notes;
+
+    const editModal = new bootstrap.Modal(document.getElementById('editDebtModal'));
+    editModal.show();
+}
+
+// حدث الزر لحفظ التعديلات
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('saveDebtChanges').addEventListener('click', function () {
+        const debtId = document.getElementById('editDebtId').value;
+        const amount = document.getElementById('editDebtAmount').value;
+        const notes = document.getElementById('editDebtNotes').value;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/edit_debt/${debtId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                amount_debt: amount,
+                notes: notes
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Debt updated successfully!');
+                location.reload(); // تحديث الصفحة
+            } else {
+                alert(data.error || 'Failed to update debt.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating debt:', error);
+            alert('Error updating debt.');
+        });
+    });
 });
 
-// دالة حذف الدين عبر AJAX
-function deleteDebt(debtId) {
-    fetch(`/delete_debt/${debtId}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({ 'item_id': debtId })
-    })
-    .then(response => {
-        if (response.ok) {
-            // إزالة الصف من الجدول بعد الحذف
-            document.getElementById(`debt-row-${debtId}`).remove();
-        } else {
-            alert('Failed to delete debt');
+        // دالة حذف الدين عبر AJAX
+        function deleteDebt(debtId) {
+            fetch(`/delete_debt/${debtId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ 'item_id': debtId })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // إزالة الصف من الجدول بعد الحذف
+                        document.getElementById(`debt-row-${debtId}`).remove();
+                    } else {
+                        alert('Failed to delete debt');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting debt');
+                });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting debt');
-    });
-}
 
         document.addEventListener('DOMContentLoaded', function () {
             var customerModal = document.getElementById('customerModal');
@@ -308,6 +357,34 @@ function deleteDebt(debtId) {
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="modal fade" id="editDebtModal" tabindex="-1" aria-labelledby="editDebtModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDebtModalLabel">Edit Debt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editDebtForm">
+                        {% csrf_token %}
+                        <input type="hidden" id="editDebtId" name="debt_id" value="">
+                        <div class="mb-3">
+                            <label for="editDebtAmount" class="form-label">Amount</label>
+                            <input type="text" class="form-control" id="editDebtAmount" name="debt_amount">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDebtNotes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="editDebtNotes" rows="3" name="debt_notes"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveDebtChanges">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
