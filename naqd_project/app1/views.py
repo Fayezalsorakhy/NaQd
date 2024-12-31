@@ -1,7 +1,8 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse,redirect
 from .models import *
 from django.http import JsonResponse
 import json
+from django.shortcuts import get_object_or_404
 
 
 
@@ -118,3 +119,14 @@ def customers_view(request):
     except Exception as e:
         print(f"Error fetching customers: {e}")
         return JsonResponse({'error': 'Failed to retrieve customers'}, status=500)
+    
+def delete_debt(request, pk):
+    debt = get_object_or_404(Debt, pk=pk)
+    if request.method == 'POST':
+        debt.delete()
+        return JsonResponse({'success': True})  # إرجاع استجابة JSON بعد الحذف
+    return JsonResponse({'success': False}, status=400)
+
+def debt_list(request):
+    debts = Debt.objects.all()  # جلب جميع الديون من قاعدة البيانات
+    return render(request, 'debt_list.html', {'debts': debts})

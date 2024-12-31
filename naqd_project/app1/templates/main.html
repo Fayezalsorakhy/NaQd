@@ -25,10 +25,10 @@
         }
 
         .actions {
-    display: flex;
+            display: flex;
 
-    justify-content: space-evenly;
-}
+            justify-content: space-evenly;
+        }
     </style>
 </head>
 
@@ -139,15 +139,15 @@
                             </div>
                             <div class="mb-3">
                                 <label for="debt_description" class="form-label"><strong>Notes:</strong> </label>
-                                <textarea class="form-control" id="debt_description" rows="3" name="debt_description"></textarea>
+                                <textarea class="form-control" id="debt_description" rows="3"
+                                    name="debt_description"></textarea>
                             </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" form="selectCustomerForm" class="btn btn-primary"
-                        id="add_debts">Save</button>
+                    <button type="button" form="selectCustomerForm" class="btn btn-primary" id="add_debts">Save</button>
                 </div>
             </div>
         </div>
@@ -179,41 +179,64 @@
         });
 
         document.getElementById('debts-link').addEventListener('click', function () {
-            fetch('/api/debts/')
-                .then(response => response.json())
-                .then(data => {
-                    let content = '<table class="table table-striped">';
-                    content += '<thead><tr><th>ID</th><th>Amount</th><th>Status</th><th>Customer</th><th>Actions</th></tr></thead><tbody>';
-                    add_button = '<button type="button" class="btn btn-primary btn-lg active" data-bs-toggle="modal"  data-bs-target="#customerModal" data-id="${debt.id}">  Add Debts  </button>'
-                    // ' <a href="/add_debts" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Debts</a>'
+    fetch('/api/debts/')
+        .then(response => response.json())
+        .then(data => {
+            let content = '<table class="table table-striped">';
+            content += '<thead><tr><th>ID</th><th>Amount</th><th>Status</th><th>Customer</th><th>Actions</th></tr></thead><tbody>';
 
-                    data.forEach(debt => {
-                        content += `<tr>
-                <td>${debt.id}</td>
-                <td>${debt.amount_debt}</td>
-                <td>${debt.status_debt ? 'Paid' : 'Unpaid'}</td>
-                <td>${debt.customer_name}</td>
-                <td>
-                    <div class="actions">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#exampleModal" data-id="${debt.id}">
-                            Edit
-                        </button>
-                        
-                        <form action="delete_item" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="item_id" value="${debt.id}">
-                            <button type="submit" class="btn btn-danger">Delete</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>`;
-                    });
-                    content += '</tbody></table>';
-                    document.getElementById('content').innerHTML = add_button + content;
-                    document.getElementById('head_title').textContent = 'Debts';
-                });
+            const add_button = '<button type="button" class="btn btn-primary btn-lg active" data-bs-toggle="modal" data-bs-target="#customerModal"> Add Debts </button>';
+
+            data.forEach(debt => {
+                content += `<tr id="debt-row-${debt.id}">
+                    <td>${debt.id}</td>
+                    <td>${debt.amount_debt}</td>
+                    <td>${debt.status_debt ? 'Paid' : 'Unpaid'}</td>
+                    <td>${debt.customer_name}</td>
+                    <td>
+                        <div class="actions">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#exampleModal" data-id="${debt.id}">
+                                Edit
+                            </button>
+
+                            <button type="button" class="btn btn-danger" onclick="deleteDebt(${debt.id})">
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+
+            content += '</tbody></table>';
+            document.getElementById('content').innerHTML = add_button + content;
+            document.getElementById('head_title').textContent = 'Debts';
         });
+});
+
+// دالة حذف الدين عبر AJAX
+function deleteDebt(debtId) {
+    fetch(`/delete_debt/${debtId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ 'item_id': debtId })
+    })
+    .then(response => {
+        if (response.ok) {
+            // إزالة الصف من الجدول بعد الحذف
+            document.getElementById(`debt-row-${debtId}`).remove();
+        } else {
+            alert('Failed to delete debt');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting debt');
+    });
+}
 
         document.addEventListener('DOMContentLoaded', function () {
             var customerModal = document.getElementById('customerModal');
@@ -248,39 +271,39 @@
 
 
         document.querySelector('#add_debts').addEventListener('click', function () {
-        
-        var selectedCustomer = document.getElementById('customerSelect').value;
-        var debt_amount = document.getElementById('debt_amount').value;
-        var debt_Description = document.getElementById('debt_description').value;
-        
 
-        fetch('/add_debts/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({
-                
-                customer_id : selectedCustomer,
-                debtamount: debt_amount,
-                debtDescription: debt_Description
+            var selectedCustomer = document.getElementById('customerSelect').value;
+            var debt_amount = document.getElementById('debt_amount').value;
+            var debt_Description = document.getElementById('debt_description').value;
+
+
+            fetch('/add_debts/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+
+                    customer_id: selectedCustomer,
+                    debtamount: debt_amount,
+                    debtDescription: debt_Description
+                })
             })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Debt was updated successfully!');
-                    location.reload(); // إعادة تحميل الصفحة بعد التحديث
-                } else {
-                    alert('Failed to update item! ');
-                }
-            })
-            .catch(error => {
-                console.error('Error updating item:', error);
-                alert('Failed to update item!');
-            });
-    });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Debt was updated successfully!');
+                        location.reload(); // إعادة تحميل الصفحة بعد التحديث
+                    } else {
+                        alert('Failed to update item! ');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating item:', error);
+                    alert('Failed to update item!');
+                });
+        });
 
     </script>
 
